@@ -1107,41 +1107,6 @@ describe('validate', function () {
   });
 
   describe('permissions', function () {
-    var PERMISSIONS = {
-      web: [
-        'alarms', 'audio-capture', 'audio-channel-content',
-        'audio-channel-normal', 'desktop-notification', 'fmradio',
-        'geolocation', 'push', 'storage', 'video-capture'
-      ],
-      privileged: [
-        'audio-channel-alarm', 'audio-channel-notification', 'browser',
-        'contacts', 'device-storage:pictures', 'device-storage:videos',
-        'device-storage:music', 'device-storage:sdcard', 'feature-detection',
-        'input', 'mobilenetwork', 'speaker-control', 'systemXHR', 'tcp-socket'
-      ],
-      certified: [
-        'audio-channel-publicnotification', 'background-sensors',
-        'backgroundservice', 'bluetooth', 'camera', 'cellbroadcast',
-        'downloads', 'device-storage:apps', 'embed-apps', 'idle',
-        'mobileconnection', 'moz-attention', 'moz-audio-channel-telephony',
-        'moz-audio-channel-ringer', 'moz-firefox-accounts', 'network-events',
-        'networkstats-manage', 'open-remote-window', 'permissions',
-        'phonenumberservice', 'power', 'settings', 'sms', 'telephony', 'time',
-        'voicemail', 'webapps-manage', 'wifi-manage', 'wappush'
-      ]
-    };
-
-    var _FULL_PERMISSIONS = ['readonly', 'readwrite', 'readcreate', 'createonly'];
-
-    var PERMISSIONS_ACCESS = {
-      contacts: _FULL_PERMISSIONS,
-      'device-storage:apps': _FULL_PERMISSIONS,
-      'device-storage:music': _FULL_PERMISSIONS,
-      'device-storage:pictures': _FULL_PERMISSIONS,
-      'device-storage:sdcard': _FULL_PERMISSIONS,
-      'device-storage:videos': _FULL_PERMISSIONS,
-      settings: ['readonly', 'readwrite']
-    }
 
     function setPermissions (type) {
       type = type || 'web';
@@ -1152,15 +1117,15 @@ describe('validate', function () {
         common.launch_path = '/index.html';
       }
 
-      var set = PERMISSIONS[type];
+      var set = m.PERMISSIONS[type];
 
       set.forEach(function (perm) {
         common.permissions[perm] = {
           'description': 'Required to make things good.'
         };
 
-        if (PERMISSIONS_ACCESS.hasOwnProperty(perm)) {
-          common.permissions[perm].access = PERMISSIONS_ACCESS[perm][0];
+        if (m.PERMISSIONS_ACCESS.hasOwnProperty(perm)) {
+          common.permissions[perm].access = m.PERMISSIONS_ACCESS[perm][0];
         }
       });
 

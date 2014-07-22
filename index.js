@@ -17,12 +17,49 @@ var BANNED_ORIGINS = [
 ];
 
 var Manifest = function () {
+
   this.manifest = {};
 
   var errors = {};
   var warnings = {};
 
   var self = this;
+
+  this.PERMISSIONS = {
+    web: [
+      'alarms', 'audio-capture', 'audio-channel-content',
+      'audio-channel-normal', 'desktop-notification', 'fmradio',
+      'geolocation', 'push', 'storage', 'video-capture'
+    ],
+    privileged: [
+      'audio-channel-alarm', 'audio-channel-notification', 'browser',
+      'contacts', 'device-storage:pictures', 'device-storage:videos',
+      'device-storage:music', 'device-storage:sdcard', 'feature-detection',
+      'input', 'mobilenetwork', 'speaker-control', 'systemXHR', 'tcp-socket'
+    ],
+    certified: [
+      'audio-channel-publicnotification', 'background-sensors',
+      'backgroundservice', 'bluetooth', 'camera', 'cellbroadcast',
+      'downloads', 'device-storage:apps', 'embed-apps', 'idle',
+      'mobileconnection', 'moz-attention', 'moz-audio-channel-telephony',
+      'moz-audio-channel-ringer', 'moz-firefox-accounts', 'network-events',
+      'networkstats-manage', 'open-remote-window', 'permissions',
+      'phonenumberservice', 'power', 'settings', 'sms', 'telephony', 'time',
+      'voicemail', 'webapps-manage', 'wifi-manage', 'wappush'
+    ]
+  };
+
+  var _FULL_PERMISSIONS = ['readonly', 'readwrite', 'readcreate', 'createonly'];
+
+  this.PERMISSIONS_ACCESS = {
+    contacts: _FULL_PERMISSIONS,
+    'device-storage:apps': _FULL_PERMISSIONS,
+    'device-storage:music': _FULL_PERMISSIONS,
+    'device-storage:pictures': _FULL_PERMISSIONS,
+    'device-storage:sdcard': _FULL_PERMISSIONS,
+    'device-storage:videos': _FULL_PERMISSIONS,
+    settings: ['readonly', 'readwrite']
+  };
 
   this.validate = function (content, options) {
     errors = {};
@@ -50,6 +87,7 @@ var Manifest = function () {
       hasValidRedirects();
       hasValidRole();
       hasValidPrecompile();
+      hasValidPermissions();
       hasValidActivitiesFilters();
     }
 
@@ -517,6 +555,67 @@ var Manifest = function () {
           'the `precompile` field of the manifest';
       }
     }
+  };
+
+  /*
+            "additionalProperties": false
+            "properties": {
+                "settings": {
+                    "type": "object",
+                    "required": ["description", "access"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "description": { "type": "string" },
+                        "access": {
+                            "type": "string",
+                            "oneOf": ["readonly", "readwrite"]
+                        }
+                    }
+                }
+            },
+            "patternProperties": {
+                "^(contacts|device-storage:apps|device-storage:music|device-storage:pictures|device-storage:sdcard|device-storage:videos)$": {
+                    "type": "object",
+                    "required": ["description", "access"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "description": { "type": "string" },
+                        "access": {
+                            "type": "string",
+                            "oneOf": ["readonly", "readwrite", "readcreate", "createonly"]
+                        }
+                    }
+                },
+                "^(alarms|audio-capture|audio-channel-content|audio-channel-normal|moz-audio-channel-telephony|desktop-notification|moz-firefox-accounts|fmradio|geolocation|push|storage|video-capture|audio-channel-alarm|audio-channel-notification|browser|feature-detection|input|mobilenetwork|speaker-control|systemXHR|tcp-socket|moz-attention|moz-audio-channel-ringer|audio-channel-publicnotification|background-sensors|backgroundservice|bluetooth|camera|cellbroadcast|downloads||embed-apps|idle|mobileconnection|network-events|networkstats-manage|open-remote-window|permissions|phonenumberservice|power|sms|telephony|time|voicemail|webapps-manage|wifi-manage|wappush)$": {
+                    "type": "object",
+                    "required": ["description"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "description": { "type": "string" }
+                    }
+                }
+            }
+ */ 
+
+  var PERMISSION_WITH_ACCESS_SCHEMA = {
+      "type": "object",
+      "required": ["description", "access"],
+      "additionalProperties": false,
+      "properties": {
+          "description": { "type": "string" },
+          "access": {
+              "type": "string",
+              "oneOf": ["readonly", "readwrite", "readcreate", "createonly"]
+          }
+      }
+  };
+
+  var PERMISSION_ACCESS_SCHEMA = {
+      "type": "string",
+      "oneOf": ["readonly", "readwrite", "readcreate", "createonly"]
+  }
+
+  var hasValidPermissions = function () {
   };
 
   var ACTIVITY_FILTER_OBJECT_SCHEMA = {
