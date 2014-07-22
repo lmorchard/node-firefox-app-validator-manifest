@@ -1143,29 +1143,51 @@ describe('validate', function () {
       settings: ['readonly', 'readwrite']
     }
 
-    function setPermissions () {
+    function setPermissions (type) {
+      type = type || 'web';
+      common.type = type;
       common.permissions = {};
-
-      for (var k in PERMISSIONS) {
-        var set = PERMISSIONS[k];
-
-        set.forEach(function (perm) {
-          common.permissions[perm] = {
-            'description': 'Required to make things good.'
-          };
-
-          if (PERMISSIONS_ACCESS.hasOwnProperty(perm)) {
-            common.permissions[perm].access = PERMISSIONS_ACCESS[perm][0];
-          }
-        });
+      var packaged = ('web' !== type);
+      if (packaged) {
+        common.launch_path = '/index.html';
       }
+
+      var set = PERMISSIONS[type];
+
+      set.forEach(function (perm) {
+        common.permissions[perm] = {
+          'description': 'Required to make things good.'
+        };
+
+        if (PERMISSIONS_ACCESS.hasOwnProperty(perm)) {
+          common.permissions[perm].access = PERMISSIONS_ACCESS[perm][0];
+        }
+      });
+
+      return packaged;
     }
 
-    it('should be valid with the full expected set of permissions', function () {
-      setPermissions();
+    it('should be valid when permissions are used with the correct app type', function () {
+      ['web', 'privileged', 'certified'].forEach(function (app_type) {
+        var packaged = setPermissions(app_type);
 
-      var results = m.validate(common);
-      results.errors.should.be.empty;
+        var results = m.validate(common, {
+          packaged: packaged
+        });
+        results.errors.should.be.empty;
+      });
+    });
+
+    it('should be invalid when permissions are used with the wrong app type', function () {
+      ['web', 'privileged', 'certified'].forEach(function (app_type) {
+        common.type = app_type;
+        ['web', 'privileged', 'certified'].forEach(function (incorrect_type) {
+          setPermissions(incorrect_type);
+
+          var results = m.validate(common);
+          results.errors.should.not.be.empty;
+        });
+      });
     });
 
     it('should be invalid when not an object', function () {
@@ -1206,28 +1228,34 @@ describe('validate', function () {
     });
 
     it('should be invalid where a permission is missing access', function () {
-      setPermissions();
+      setPermissions('privileged');
       delete common.permissions.contacts.access;
 
-      var results = m.validate(common);
+      var results = m.validate(common, {
+        packaged: true
+      });
       results.errors.MandatoryFieldPermissionsContactsAccess.should.equal(
         'Mandatory field access is missing');
     });
 
     it('should be invalid where a permission has an invalid access', function () {
-      setPermissions();
+      setPermissions('privileged');
       common.permissions.contacts.access = 'asdf';
 
-      var results = m.validate(common);
+      var results = m.validate(common, {
+        packaged: true
+      });
       results.errors.InvalidStringTypePermissionsContactsAccess.should.equal(
         '`access` must be one of the following: readonly,readwrite,readcreate,createonly');
     });
 
     it('should be invalid where a permission has an unavailable access', function () {
-      setPermissions();
+      setPermissions('certified');
       common.permissions.settings.access = 'createonly';
 
-      var results = m.validate(common);
+      var results = m.validate(common, {
+        packaged: true
+      });
       results.errors.InvalidStringTypePermissionsSettingsAccess.should.equal(
         '`access` must be one of the following: readonly,readwrite');
     });
